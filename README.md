@@ -17,6 +17,11 @@ A repository for STAT293: Methods in Applied Statistics at UC Riverside for Fall
 | `31_RMD_VARX_Exploration.Rmd` | Fits LASSO to one VARX-generated dataset with and without lagged Z; computes original metrics and creates the VARX plot |
 | `41_RMD_FixedSpectralRadius.Rmd` | Runs the existing 20-replication fixed-radius experiment for gamma = 0.05, 0.25, 0.50; computes approximate spectral measures and produces plots |
 
+| `simulation_objects.Rdata` | Contains simulated VAR/VARX datasets |
+| `lagged_designs.Rdata` | Contains the processed predictor and response matrices, with observations paired using one time lag for VAR/VARX estimation |
+| `var_estimator_results.Rdata` | Stores the fitted VAR models and results from comparing OLS, Ridge, and LASSO |
+| `var_exploration_results.Rdata` | Stores the fitted models and results from the VARX comparison |
+
 
 ## Reproducibility Instructions
 
