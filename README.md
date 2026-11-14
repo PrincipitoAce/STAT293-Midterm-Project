@@ -3,9 +3,9 @@ A repository for STAT293: Methods in Applied Statistics at UC Riverside for Fall
 
 | File | Role |
 |---|---|
-| `README.md` | Guide |
+| `README.md` | Overview of project and file roles |
 | `00_requirements.R` | Installs and loads `glmnet`, `ggplot2`, `knitr`, `rmarkdown`, and `BigVAR` |
-| `01_funct_GenerateData.R` | Function for generating simulated data.  |
+| `01_funct_GenerateData.R` | Function for generating simulated data  |
 | `02_funct_MethodImplementation.R` | Functions for creating the lagged design and separating the training, validation, and testing observations; as well as for estimating the VAR/VARX coefficients and evaluating test predictions  |
 | `03_funct_ModelEvaluation.R` | Functions for model performance metrics |
 | `04_funct_SpectralAnalysis.R` | Functions for the fixed spectral radius experiment |
