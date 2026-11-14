@@ -20,7 +20,7 @@ A repository for STAT293: Methods in Applied Statistics at UC Riverside for Fall
 
 ## Reproducibility Instructions
 
-First, download the zip file for this repository. After extracting your files, use `getwd()` in RStudio to check what file directory you're in. Then, use `setwd()` to set your file directory to the one referring to the clone of this repository on your device. Next, run the following: 
+First, download the zip file for this repository. After extracting your files, use `getwd()` in RStudio to check what file directory you're in. Then, use `setwd()` to set your file directory to the one referring to the clone of this repository on your device. Finally, run the following: 
 
 ```
 source("00_requirements.R")
