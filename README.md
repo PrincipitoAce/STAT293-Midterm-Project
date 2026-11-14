@@ -1,6 +1,8 @@
 # STAT293-Midterm-Project
 A repository for STAT293: Methods in Applied Statistics at UC Riverside for Fall 2026. This project assesses the methodology introduced in Basu and Michailidis (2015), *Regularized Estimation in Sparse High-Dimensional Time Series Models*.
 
+## File Descriptions
+
 | File | Role |
 |---|---|
 | `README.md` | Overview of project and file roles |
@@ -14,4 +16,18 @@ A repository for STAT293: Methods in Applied Statistics at UC Riverside for Fall
 | `21_RMD_VAR_EstimatorComparison.Rmd` | Fits OLS, Ridge, and LASSO to weak/strong VAR(1) datasets; computes the original coefficient/prediction/selection metrics and produces VAR figures |
 | `31_RMD_VARX_Exploration.Rmd` | Fits LASSO to one VARX-generated dataset with and without lagged Z; computes original metrics and creates the VARX plot |
 | `41_RMD_FixedSpectralRadius.Rmd` | Runs the existing 20-replication fixed-radius experiment for gamma = 0.05, 0.25, 0.50; computes approximate spectral measures and produces plots |
+
+
+## Reproducibility Instructions
+
+First, download the zip file for this repository. After extracting your files, use `getwd()` in RStudio to check what file directory you're in. Then, use `setwd()` to set your file directory to the one referring to the clone of this repository on your device. Next, run the following: 
+
+```
+source("00_requirements.R")
+rmarkdown::render("10_RMD_GeneratingSimData.Rmd")
+rmarkdown::render("11_RMD_DataProcessing.Rmd")
+rmarkdown::render("21_RMD_VAR_EstimatorComparison.Rmd")
+rmarkdown::render("31_RMD_VARX_Exploration.Rmd")
+rmarkdown::render("41_RMD_FixedSpectralRadius.Rmd")
+```
 
