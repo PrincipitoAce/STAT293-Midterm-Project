@@ -65,7 +65,7 @@ I estimated each response equation using OLS, Ridge, and LASSO. The 200 observat
 
 ![](figures/var_coefficient_error.png)
 
-*Figure 1. Relative Frobenius estimation error for the two sparse VAR settings; lower is better.*
+*Figure 1. Relative Frobenius estimation error for the two sparse VAR settings.*
 
 LASSO had the lowest held-out MSE in both settings, but Ridge achieved slightly lower coefficient error in the weak setting. Since the innovations have variance one, even a model using the true transition matrix would have an expected one-step prediction MSE of one due to random noise. Therefore, the relatively small differences in prediction MSE across the models should be interpreted cautiously. LASSO also selected 137 coefficients in the weak setting despite only 39 true nonzeros (TPR 0.590; FPR 0.316). Thus good prediction does not imply accurate identification of sparse relationships. Only one dataset is used per setting, and changing from weak to strong also increases coefficient magnitudes, so it does not isolate a dependence effect.
 
@@ -111,7 +111,7 @@ For the real-data application, I propose to study whether **economic policy unce
 
 The unemployment rates are percentages of their respective labor forces; the policy uncertainty measure is an index rather than a percentage and is not seasonally adjusted. Hispanic/Latino ethnicity overlaps the BLS racial group definitions, so the categories are not mutually exclusive. 
 
-I will download and align the series by month; check missingness, seasonality, and revisions; visualize the four unemployment paths, unemployment gaps, and policy uncertainty; and examine stationarity, possible structural breaks, and lag adequacy. After selecting an appropriate lag order and checking residual diagnostics and stability, I will compare a baseline VAR($d$) for the four unemployment series against my partner's VARX($d$,1), which adds lagged policy uncertainty. Both models will be evaluated using the same chronological test periods and one-step forecasting errors, including errors by racial/ethnic group. Lagging uncertainty does not by itself establish strict exogeneity or causality. The real-data application has $p=4$ and is lower-dimensional than the simulations; it therefore complements rather than replaces the high-dimensional evaluation.
+The series will be aligned by month; I will check missingness, seasonality, and revisions; visualize the four unemployment paths, unemployment gaps, and policy uncertainty; and examine stationarity, possible structural breaks, and lag adequacy. After selecting an appropriate lag order and checking residual diagnostics and stability, I will compare a baseline VAR($d$) for the four unemployment series against my partner's VARX($d$,1), which adds lagged policy uncertainty. Both models will be evaluated using the same chronological test periods and one-step forecasting errors, including errors by racial/ethnic group. Lagging uncertainty does not by itself establish strict exogeneity or causality. The real-data application has $p=4$ and is lower-dimensional than the simulations; it therefore complements rather than replaces the high-dimensional evaluation.
 
 ## References
 
