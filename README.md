@@ -7,11 +7,11 @@ A repository for STAT293: Methods in Applied Statistics at UC Riverside for Fall
 |---|---|
 | `README.md` | Overview of project and file roles |
 | `00_requirements.R` | Installs and loads `glmnet`, `ggplot2`, `knitr`, `rmarkdown`, and `BigVAR` |
-| `01_funct_GenerateData.R` | Function for generating simulated data  |
+| `01_funct_GenerateSimData.R` | Function for generating simulated data  |
 | `02_funct_MethodImplementation.R` | Functions for creating the lagged design and separating the training, validation, and testing observations; as well as for estimating the VAR/VARX coefficients and evaluating test predictions  |
 | `03_funct_ModelEvaluation.R` | Functions for model performance metrics |
 | `04_funct_SpectralAnalysis.R` | Functions for the fixed spectral radius experiment |
-| `10_generate_data.Rmd` | Generates simulated data |
+| `10_RMD_GeneratingSimData.Rmd` | Generates simulated data |
 | `11_RMD_DataProcessing.Rmd` | Loads the simulated data, checks required objects and lag alignment, creates lagged regression designs, and saves them |
 | `21_RMD_VAR_EstimatorComparison.Rmd` | Fits OLS, Ridge, and LASSO to weak/strong VAR(1) datasets; computes the original coefficient/prediction/selection metrics and produces VAR figures |
 | `31_RMD_VARX_Exploration.Rmd` | Fits LASSO to one VARX-generated dataset with and without lagged Z; computes original metrics and creates the VARX plot |
