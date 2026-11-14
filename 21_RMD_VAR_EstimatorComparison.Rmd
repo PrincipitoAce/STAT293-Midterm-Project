@@ -1,0 +1,74 @@
+---
+title: 'Sparse VAR(1): OLS, Ridge, and LASSO comparison'
+author: "Ace I. Mejia-Sanchez"
+date: "2026-11-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Using the original simulated weak/strong sparse VAR(1) datasets, we compare OLS, Ridge and LASSO. The estimation routines, tuning rules, and score calculations are unchanged. The original combined results table has been separated into VAR and VARX outputs solely so each R Markdown file addresses one experiment.
+
+```{r}
+source("00_requirements.R")
+source("02_funct_MethodImplementation.R")
+source("03_funct_ModelEvaluation.R")
+load("data/simulation_objects.RData")
+load("data/processed/lagged_designs.RData")
+
+methods <- c("OLS", "Ridge", "LASSO")
+weak_fits <- setNames(lapply(methods, function(m) fit_equations(weak_data, m)), methods)
+strong_fits <- setNames(lapply(methods, function(m) fit_equations(strong_data, m)), methods)
+
+# Same original score_fit calls, grouped into the VAR experiment only.
+metrics <- do.call(rbind, c(
+  lapply(methods, function(m) score_fit(weak_fits[[m]], A_weak,
+                                      "VAR: weak dependence", "VAR(1)")),
+  lapply(methods, function(m) score_fit(strong_fits[[m]], A_strong,
+                                      "VAR: strong dependence", "VAR(1)"))
+))
+rownames(metrics) <- NULL
+print(metrics, digits = 4, row.names = FALSE)
+
+# Graph estimation errors and prediction errors
+# Only the two regular VAR settings
+var_only <- subset(metrics, fitted_model == "VAR(1)")
+plot_A_error <- ggplot(var_only, aes(x = scenario, y = relative_A_error, fill = method)) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.67) +
+  labs(title = "Sparse VAR coefficient estimation error",
+       x = NULL, y = "Relative Frobenius error", fill = "Estimator") +
+  scale_fill_viridis_d() 
+
+plot_test_MSE <- ggplot(var_only, aes(x = scenario, y = test_one_step_MSE, fill = method)) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.67) +
+  labs(title = "Held-out one-step prediction MSE",
+       x = NULL, y = "Test MSE", fill = "Estimator") +
+  scale_fill_viridis_d() 
+
+# Heatmap: true vs. fitted A for weak VAR
+
+# Put the true and estimated matrices into one plotting dataset
+heat_data <- rbind(
+  coef_to_long(A_weak, "True A: weak VAR"),
+  coef_to_long(weak_fits$LASSO$A_hat, "Estimated A: LASSO")
+)
+plot_coefficients <- ggplot(heat_data, aes(x = predictor, y = response, fill = value)) +
+  geom_tile() +
+  facet_wrap(~panel) +
+  scale_fill_gradient2(low = "#AA4B55", mid = "white", high = "#397EAC",
+                       midpoint = 0) +
+  coord_equal() +
+  scale_y_reverse() +
+  labs(title = "True and estimated transition matrices",
+       x = "Lagged predictor j", y = "Response equation i", fill = "Coefficient")
+
+print(plot_A_error)
+print(plot_test_MSE)
+print(plot_coefficients)
+
+# Organization only: keep estimated models and metrics for reuse.
+save(methods, weak_fits, strong_fits, metrics,
+     file = "data/processed/var_estimator_results.RData")
+```

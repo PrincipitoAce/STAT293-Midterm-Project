@@ -1,0 +1,55 @@
+---
+title: 'Exploratory VARX: omit versus include lagged Z'
+author: "Ace I. Mejia-Sanchez"
+date: "2026-11-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This analysis fits LASSO twice to the **same** weak-dependence, weak-exogenous-effect dataset: once without lagged Z and once with lagged Z. The fitting code and score calculations are from the original source.
+
+```{r}
+source("00_requirements.R")
+source("02_funct_MethodImplementation.R")
+source("03_funct_ModelEvaluation.R")
+load("data/simulation_objects.RData")
+load("data/processed/lagged_designs.RData")
+
+exo_omit_fit <- fit_equations(exo_data_as_VAR, method = "LASSO")
+exo_include_fit <- fit_equations(exo_data_as_VARX, method = "LASSO")
+
+# Same original score_fit calls, grouped into the VARX experiment only.
+metrics <- do.call(rbind, c(
+  list(
+    score_fit(exo_omit_fit, A_weak, "VARX-generated data", "VAR(1): omit Z",
+              B_true = B_weak),
+    score_fit(exo_include_fit, A_weak, "VARX-generated data", "VARX(1,1): include Z",
+              B_true = B_weak)
+  )
+))
+rownames(metrics) <- NULL
+print(metrics, digits = 4, row.names = FALSE)
+cat("\nTrue exogenous effects for Y1 and Y3:\n")
+print(B_weak[c(1, 3)])
+cat("\nLASSO VARX estimated exogenous effects for Y1 and Y3:\n")
+print(exo_include_fit$B_hat[c(1, 3)])
+cat("\nNumber of nonzero exogenous coefficients selected:\n")
+print(sum(abs(exo_include_fit$B_hat) > 1e-7))
+
+# Compare omitting vs including Z
+exo_only <- subset(metrics, scenario == "VARX-generated data")
+plot_exo <- ggplot(exo_only, aes(x = fitted_model, y = test_one_step_MSE)) +
+  geom_col(width = 0.55, fill = "#538AB6") +
+  labs(title = "Exploratory VARX comparison (LASSO with and without Z)",
+       x = NULL, y = "Held-out one-step MSE") 
+
+print(plot_exo)
+
+# Organization only: save the two exploratory model fits and metrics.
+save(exo_omit_fit, exo_include_fit, metrics,
+     file = "data/processed/varx_exploration_results.RData")
+```
+

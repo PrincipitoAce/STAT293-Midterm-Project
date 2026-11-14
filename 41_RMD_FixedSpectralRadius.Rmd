@@ -1,0 +1,151 @@
+---
+title: "Fixed spectral radius: varying cross-variable coupling"
+author: "Ace I. Mejia-Sanchez"
+date: "2026-11-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This file provides the fixed-spectral-radius experiment. All three transition matrices have rho(A) = 0.2, while their first superdiagonal coupling gamma varies (which reflect different versions of temporal and cross-variable dependence). The experiment runs 20 LASSO replications per condition, approximates spectral extrema on a frequency grid, and plots absolute/relative coefficient errors. 
+
+```{r}
+source("00_requirements.R")
+source("02_funct_MethodImplementation.R")
+source("04_funct_SpectralAnalysis.R")
+load("data/simulation_objects.RData")
+
+stopifnot(exists("make_lagged_design", mode = "function"),
+          exists("fit_equations", mode = "function"))
+if (!requireNamespace("ggplot2", quietly = TRUE)) {
+  stop("Install ggplot2 before running this extension.")
+}
+
+set.seed(92508)
+p_ext <- ncol(data_VAR_weakDEP)
+n_ext <- nrow(data_VAR_weakDEP)
+burn_ext <- 250L
+n_reps <- 20L       # Use 5 for an initial quick run; then 20+ for figures
+rho_target <- 0.20
+gamma_values <- c(0.05, 0.25, 0.50)
+
+# Generate stationary-approximate VAR(1) trajectories from common Gaussian
+# innovations, discarding burn-in observations.
+A_candidates <- lapply(gamma_values, function(gamma) {
+  A <- diag(rho_target, p_ext)
+  A[cbind(seq_len(p_ext - 1L), seq.int(2L, p_ext))] <- gamma
+  A
+})
+names(A_candidates) <- as.character(gamma_values)
+
+spectral_table <- do.call(rbind, lapply(seq_along(gamma_values), function(i) {
+  A <- A_candidates[[i]]
+  ext <- spectral_extrema(A)
+  data.frame(gamma = gamma_values[i],
+             spectral_radius = max(Mod(eigen(A, only.values = TRUE)$values)),
+             A_Frobenius = norm(A, type = "F"),
+             true_nonzero = sum(abs(A) > 1e-10),
+             M_approx = unname(ext["M_approx"]),
+             m_approx = unname(ext["m_approx"]))
+}))
+stopifnot(all(abs(spectral_table$spectral_radius - rho_target) < 1e-9))
+stopifnot(length(unique(spectral_table$true_nonzero)) == 1L)
+
+# Matched innovations within replication reduce Monte Carlo noise in contrasts.
+results <- vector("list", n_reps * length(gamma_values))
+idx <- 0L
+for (r in seq_len(n_reps)) {
+  innovations <- matrix(rnorm((n_ext + burn_ext) * p_ext),
+                        nrow = n_ext + burn_ext, ncol = p_ext)
+  for (i in seq_along(gamma_values)) {
+    gamma <- gamma_values[i]
+    A <- A_candidates[[i]]
+    Y <- simulate_var1(A, innovations, burn_ext)
+    fit <- fit_equations(make_lagged_design(Y), method = "LASSO")
+    idx <- idx + 1L
+    results[[idx]] <- data.frame(
+      repetition = r,
+      gamma = gamma,
+      absolute_A_error = norm(fit$A_hat - A, type = "F"),
+      relative_A_error = norm(fit$A_hat - A, type = "F") / norm(A, type = "F"),
+      test_one_step_MSE = fit$test_mse,
+      true_nonzero = sum(abs(A) > 1e-10),
+      selected_nonzero = sum(abs(fit$A_hat) > 1e-7)
+    )
+  }
+  if (r %% 5L == 0L) message("Completed ", r, " of ", n_reps, " replications")
+}
+mc_results <- do.call(rbind, results)
+
+# Summarize means and across-replication standard deviations.
+mc_summary <- do.call(rbind, lapply(split(mc_results, mc_results$gamma), function(z) {
+  data.frame(gamma = z$gamma[1], n_reps = nrow(z),
+             mean_absolute_A_error = mean(z$absolute_A_error),
+             sd_absolute_A_error = sd(z$absolute_A_error),
+             mean_relative_A_error = mean(z$relative_A_error),
+             sd_relative_A_error = sd(z$relative_A_error),
+             mean_test_MSE = mean(z$test_one_step_MSE))
+}))
+row.names(mc_summary) <- NULL
+mc_summary <- merge(mc_summary, spectral_table, by = "gamma", sort = TRUE)
+
+cat("\nFixed-spectral-radius design and Monte Carlo results:\n")
+print(mc_summary, digits = 4, row.names = FALSE)
+
+library(ggplot2)
+plot_fixed_rho_error <- ggplot(mc_results,
+                              aes(x = factor(gamma), y = absolute_A_error)) +
+  geom_boxplot(width = 0.50, outlier.shape = NA, fill = "#b1ccdf") +
+  geom_jitter(width = 0.08, alpha = 0.30, size = 1.5) +
+  stat_summary(fun = mean, geom = "point", size = 3.2, shape = 18,
+               color = "#233b53") +
+  labs(title = "LASSO estimation error at a fixed spectral radius",
+       subtitle = paste0("rho(A) = ", rho_target,
+                         "; ", n_reps, " replications per coupling level"),
+       x = "Off-diagonal coupling (gamma)",
+       y = "Absolute Frobenius error of A")
+
+plot_spectral_peak <- ggplot(spectral_table, aes(x = gamma, y = M_approx)) +
+  geom_line(linewidth = 1, color = "#3b78a4") +
+  geom_point(size = 3, color = "#3b78a4") +
+  labs(title = "Spectral peak changes despite fixed spectral radius",
+       subtitle = paste0("rho(A) = ", rho_target,
+                         "; approximate M(f_X) on a frequency grid"),
+       x = "Off-diagonal coupling (gamma)",
+       y = "Approximate spectral stability measure M(f_X)") +
+  theme_minimal(base_size = 12)
+
+plot_fixed_rho_relative <- ggplot(mc_results,
+                                 aes(x = factor(gamma), y = relative_A_error)) +
+  geom_boxplot(width = 0.50, outlier.shape = NA, fill = "#b1ccdf") +
+  geom_jitter(width = 0.08, alpha = 0.30, size = 1.5) +
+  stat_summary(fun = mean, geom = "point", size = 3.2, shape = 18,
+               color = "#233b53") +
+  labs(title = "Relative LASSO estimation error at fixed spectral radius",
+       subtitle = "Interpret with care: the true coefficient norm changes with gamma",
+       x = "Off-diagonal coupling (gamma)",
+       y = "Relative Frobenius error of A") +
+  theme_minimal(base_size = 12)
+
+print(plot_fixed_rho_error)
+print(plot_spectral_peak)
+print(plot_fixed_rho_relative)
+
+dir.create("presentation_outputs", showWarnings = FALSE)
+write.csv(mc_results,
+          "presentation_outputs/fixed_radius_repeated_results.csv",
+          row.names = FALSE)
+write.csv(mc_summary,
+          "presentation_outputs/fixed_radius_summary.csv",
+          row.names = FALSE)
+ggsave("presentation_outputs/fixed_radius_error.png", plot_fixed_rho_error,
+       width = 8, height = 5, dpi = 180)
+ggsave("presentation_outputs/fixed_radius_spectral_peak.png", plot_spectral_peak,
+       width = 8, height = 5, dpi = 180)
+ggsave("presentation_outputs/fixed_radius_relative_error.png", plot_fixed_rho_relative,
+       width = 8, height = 5, dpi = 180)
+cat("\nSaved fixed-radius simulation results in presentation_outputs/.\n")
+```
+

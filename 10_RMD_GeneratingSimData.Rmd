@@ -1,0 +1,102 @@
+---
+title: "Generating simulated data"
+author: "Ace I. Mejia-Sanchez"
+date: "2026-11-14"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The simulated data is generated and then exported as a CSV file. 
+
+```{r}
+# Generate all original VAR/VARX datasets using the same seed and formulas
+source("00_requirements.R")
+set.seed(92507)
+
+# Simulation values
+n <- 200 # Num of observations kept
+# VAR(1) has p^2 = 400 possible coefficients
+p <- 20 # Num of time series
+burn_in <- 200 # Early obs discarded to reduce startup effects
+
+############ Transition matrices ############
+
+# Start with a p x p identity matrix
+A_base <- diag(1, p)
+
+# Add lagged relationships above the diagonal
+for (i in 1:(p-1)){
+  A_base[i, i+1] <- 0.25 # First superdiagonal
+}
+
+# Weak vs. strong lagged effects (also changes signal size)
+A_weak <- 0.2 * A_base
+A_strong <- 0.8 * A_base
+
+# Stability check: largest absolute eigenvalue must be < 1
+# Find eigenvalues, take absolute values, then find max
+max(Mod(eigen(A_weak)$values))
+max(Mod(eigen(A_strong)$values))
+
+############ Exogenous effects ############
+
+# No outside effect for regular VAR
+B_none <- rep(0, p)
+
+# Weak Z effect for Y1 and Y3 only
+B_weak <- rep(0, p)
+B_weak[1] <- 0.2
+B_weak[3] <- 0.15
+
+# Strong Z effect for Y1 and Y3 only
+B_strong <- rep(0, p)
+B_strong[1] <- 0.7
+B_strong[3] <- 0.5
+
+total_n <- n + burn_in
+
+# Same independent N(0,1) shocks across all scenarios
+errors <- matrix(rnorm(total_n * p),
+                 nrow = total_n,
+                 ncol = p)
+
+# Generate lagged outside variable: Z[t] = 0.4*Z[t-1] + noise
+Z <- numeric(total_n)
+Z[1] <- rnorm(1, sd = 1 / sqrt(1 - 0.4^2))
+
+for (t in 2:total_n) {
+  Z[t] <- 0.4 * Z[t - 1] + rnorm(1)
+}
+
+
+############ Generate datasets ############
+
+# Function to generate VAR or VARX data
+source("01_funct_GenerateData.R")
+
+# 1. VAR: Weak lagged effects; no outside effects
+data_VAR_weakDEP <- sim_data_VARX(A_weak, B_none, Z, errors, burn_in)
+# 2. VAR: Strong lagged effects; no outside effects
+data_VAR_strongDEP <- sim_data_VARX(A_strong, B_none, Z, errors, burn_in)
+# 3. VARX: Weak lagged Y and weak Z effects
+data_VARX_weakDEP_weakEXO <- sim_data_VARX(A_weak, B_weak, Z, errors, burn_in)
+# 4. VARX: Strong lagged Y and weak Z effects
+data_VARX_strongDEP_weakEXO <- sim_data_VARX(A_strong, B_weak, Z, errors, burn_in)
+# 5. VARX: Weak lagged Y and strong Z effects
+data_VARX_weakDEP_strongEXO <- sim_data_VARX(A_weak, B_strong, Z, errors, burn_in)
+# 6. VARX: Strong lagged Y and strong Z effects
+data_VARX_strongDEP_strongEXO <- sim_data_VARX(A_strong, B_strong, Z, errors, burn_in)
+
+# Saving the original simulation objects for later Rmd files
+dir.create("data/raw", recursive = TRUE, showWarnings = FALSE)
+save(n, p, burn_in, total_n, A_base, A_weak, A_strong,
+     B_none, B_weak, B_strong, Z, errors,
+     data_VAR_weakDEP, data_VAR_strongDEP,
+     data_VARX_weakDEP_weakEXO, data_VARX_strongDEP_weakEXO,
+     data_VARX_weakDEP_strongEXO, data_VARX_strongDEP_strongEXO,
+     file = "data/simulation_objects.RData")
+```
+
