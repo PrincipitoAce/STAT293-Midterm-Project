@@ -22,7 +22,7 @@ methods <- c("OLS", "Ridge", "LASSO")
 weak_fits <- setNames(lapply(methods, function(m) fit_equations(weak_data, m)), methods)
 strong_fits <- setNames(lapply(methods, function(m) fit_equations(strong_data, m)), methods)
 
-# Same original score_fit calls, grouped into the VAR experiment only.
+# Same original score_fit calls, grouped into the VAR experiment only
 metrics <- do.call(rbind, c(
   lapply(methods, function(m) score_fit(weak_fits[[m]], A_weak,
                                       "VAR: weak dependence", "VAR(1)")),
@@ -68,7 +68,7 @@ print(plot_A_error)
 print(plot_test_MSE)
 print(plot_coefficients)
 
-# Organization only: keep estimated models and metrics for reuse.
+# Keeping estimated models and metrics for reuse
 save(methods, weak_fits, strong_fits, metrics,
      file = "data/processed/var_estimator_results.RData")
 ```

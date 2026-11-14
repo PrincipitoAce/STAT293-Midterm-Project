@@ -110,12 +110,10 @@ plot_fixed_rho_error <- ggplot(mc_results,
 plot_spectral_peak <- ggplot(spectral_table, aes(x = gamma, y = M_approx)) +
   geom_line(linewidth = 1, color = "#3b78a4") +
   geom_point(size = 3, color = "#3b78a4") +
-  labs(title = "Spectral peak changes despite fixed spectral radius",
-       subtitle = paste0("rho(A) = ", rho_target,
+  labs(title = paste0("Spectral peak, rho(A) = ", rho_target,
                          "; approximate M(f_X) on a frequency grid"),
        x = "Off-diagonal coupling (gamma)",
-       y = "Approximate spectral stability measure M(f_X)") +
-  theme_minimal(base_size = 12)
+       y = "Approximate spectral stability measure M(f_X)")
 
 plot_fixed_rho_relative <- ggplot(mc_results,
                                  aes(x = factor(gamma), y = relative_A_error)) +
@@ -123,11 +121,10 @@ plot_fixed_rho_relative <- ggplot(mc_results,
   geom_jitter(width = 0.08, alpha = 0.30, size = 1.5) +
   stat_summary(fun = mean, geom = "point", size = 3.2, shape = 18,
                color = "#233b53") +
-  labs(title = "Relative LASSO estimation error at fixed spectral radius",
-       subtitle = "Interpret with care: the true coefficient norm changes with gamma",
+  labs(title = "Relative LASSO est. error at fixed spectral radius",
+       subtitle = "(true coeff norm changes with gamma)",
        x = "Off-diagonal coupling (gamma)",
-       y = "Relative Frobenius error of A") +
-  theme_minimal(base_size = 12)
+       y = "Relative Frobenius error of A")
 
 print(plot_fixed_rho_error)
 print(plot_spectral_peak)
@@ -146,6 +143,5 @@ ggsave("presentation_outputs/fixed_radius_spectral_peak.png", plot_spectral_peak
        width = 8, height = 5, dpi = 180)
 ggsave("presentation_outputs/fixed_radius_relative_error.png", plot_fixed_rho_relative,
        width = 8, height = 5, dpi = 180)
-cat("\nSaved fixed-radius simulation results in presentation_outputs/.\n")
 ```
 

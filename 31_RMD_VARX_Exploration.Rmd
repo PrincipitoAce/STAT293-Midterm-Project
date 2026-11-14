@@ -21,7 +21,7 @@ load("data/processed/lagged_designs.RData")
 exo_omit_fit <- fit_equations(exo_data_as_VAR, method = "LASSO")
 exo_include_fit <- fit_equations(exo_data_as_VARX, method = "LASSO")
 
-# Same original score_fit calls, grouped into the VARX experiment only.
+# score_fit called
 metrics <- do.call(rbind, c(
   list(
     score_fit(exo_omit_fit, A_weak, "VARX-generated data", "VAR(1): omit Z",
@@ -48,7 +48,7 @@ plot_exo <- ggplot(exo_only, aes(x = fitted_model, y = test_one_step_MSE)) +
 
 print(plot_exo)
 
-# Organization only: save the two exploratory model fits and metrics.
+# Saving the two exploratory model fits and metrics
 save(exo_omit_fit, exo_include_fit, metrics,
      file = "data/processed/varx_exploration_results.RData")
 ```

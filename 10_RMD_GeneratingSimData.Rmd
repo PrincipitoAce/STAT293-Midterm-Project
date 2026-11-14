@@ -75,7 +75,7 @@ for (t in 2:total_n) {
 ############ Generate datasets ############
 
 # Function to generate VAR or VARX data
-source("01_funct_GenerateData.R")
+source("01_funct_GenerateSimData.R")
 
 # 1. VAR: Weak lagged effects; no outside effects
 data_VAR_weakDEP <- sim_data_VARX(A_weak, B_none, Z, errors, burn_in)
